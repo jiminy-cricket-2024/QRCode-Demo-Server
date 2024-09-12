@@ -238,6 +238,44 @@ app.get("/api/scan/:id", async (req, res) => {
   }
 });
 
+app.get("/vanity/:url", async (req, res) => {
+  try {
+    const { url } = req.params;
+
+    const isValid = isValidBase64(url);
+
+    if(!isValid){
+      return res.status(403).send()
+    }
+
+    // Decoding the Base64 string using Buffer
+    const decodedString = Buffer.from(url, 'base64').toString('utf-8');
+
+    console.log(decodedString); // Outputs: "Hello, world!
+
+    if (isValidUrl(decodedString)) {
+      console.log("Valid URL");
+      // Log scan to database
+      return res.redirect(decodedString);
+    } else {
+      // If invalid url then redirect back to platform website
+      console.log("Invalid URL");
+      return res.redirect(`http://192.168.1.102:3001`);
+    }
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+function isValidBase64(str) {
+  // Check if the string has valid base64 characters and is padded with `=` or not
+  const base64Regex = /^(?:[A-Za-z0-9+/]{4})*?(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+  return base64Regex.test(str);
+}
+
 // Start the server
 httpServer.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
