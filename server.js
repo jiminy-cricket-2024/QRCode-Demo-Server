@@ -238,25 +238,16 @@ app.get("/api/scan/:id", async (req, res) => {
   }
 });
 
-app.get("/vanity/:url", async (req, res) => {
+app.get("/vanity/:qrCodeId", async (req, res) => {
   try {
-    const { url } = req.params;
+    const { qrCodeId } = req.params;
 
-    const isValid = isValidBase64(url);
+    const QRCode = await sql.query(`SELECT * FROM QRCodes WHERE QRCodeId = '${qrCodeId}'`);
 
-    if(!isValid){
-      return res.status(403).send()
-    }
-
-    // Decoding the Base64 string using Buffer
-    const decodedString = Buffer.from(url, 'base64').toString('utf-8');
-
-    console.log(decodedString); // Outputs: "Hello, world!
-
-    if (isValidUrl(decodedString)) {
+    if (QRCode.recordset?.length > 0) {
       console.log("Valid URL");
       // Log scan to database
-      return res.redirect(decodedString);
+      return res.redirect(QRCode.recordset[0].RedirectUrl);
     } else {
       // If invalid url then redirect back to platform website
       console.log("Invalid URL");
